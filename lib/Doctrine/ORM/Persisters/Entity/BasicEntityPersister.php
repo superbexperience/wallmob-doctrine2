@@ -667,6 +667,14 @@ class BasicEntityPersister implements EntityPersister
 
             foreach ($assoc['joinColumns'] as $joinColumn) {
                 $sourceColumn = $joinColumn['name'];
+
+                /**
+                 * CHANGE WALLMOB
+                 * Case: POST entity with single,id relation that is null
+                 * Issue: This foreach overwrites master_user_id column on owning entity if the relation is null
+                 */
+                if (!isset($newValId) && $sourceColumn == 'master_user_id') continue;
+
                 $targetColumn = $joinColumn['referencedColumnName'];
                 $quotedColumn = $this->quoteStrategy->getJoinColumnName($joinColumn, $this->class, $this->platform);
 

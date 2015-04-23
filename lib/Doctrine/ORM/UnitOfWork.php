@@ -2754,7 +2754,12 @@ class UnitOfWork implements PropertyChangedListener
                         }
                     }
 
-                    if ( ! $associatedId) {
+                    /**
+                     * CHANGE WALLMOB
+                     * Case: Get an entity with a single,id relation that is null
+                     * Issue: $associatedId if set but only with one part of the composite key thus missing one part of it
+                     */
+                    if ( ! $associatedId || count($assoc['targetToSourceKeyColumns']) != count($associatedId)) {
                         // Foreign key is NULL
                         $class->reflFields[$field]->setValue($entity, null);
                         $this->originalEntityData[$oid][$field] = null;
