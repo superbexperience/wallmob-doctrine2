@@ -673,7 +673,7 @@ class BasicEntityPersister implements EntityPersister
                  * Case: POST entity with single,id relation that is null
                  * Issue: This foreach overwrites master_user_id column on owning entity if the relation is null
                  */
-                if (!isset($newValId) && $sourceColumn == 'master_user_id') continue;
+                if (!isset($newValId) && ($sourceColumn == 'master_user_id' || ($owningTable == 'master_users' && $sourceColumn == 'id'))) continue;
 
                 $targetColumn = $joinColumn['referencedColumnName'];
                 $quotedColumn = $this->quoteStrategy->getJoinColumnName($joinColumn, $this->class, $this->platform);
