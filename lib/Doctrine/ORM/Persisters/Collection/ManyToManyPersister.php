@@ -496,7 +496,16 @@ class ManyToManyPersister extends AbstractCollectionPersister
         }
 
         foreach ($mapping['joinTable']['inverseJoinColumns'] as $joinColumn) {
-            $columns[] = $this->quoteStrategy->getJoinColumnName($joinColumn, $targetClass, $this->platform);
+            /**
+             * CHANGE WALLMOB
+             * Case: Insert a many to many relation with master_user_id as part of both joinColumns
+             * Issue: Here we make sure only to insert the same column once in the insert statement
+             */
+            $columnName = $this->quoteStrategy->getJoinColumnName($joinColumn, $targetClass, $this->platform);
+            if (in_array($columnName, $columns)) {
+                continue;
+            }
+            $columns[] = $columnName;
             $types[]   = PersisterHelper::getTypeOfColumn($joinColumn['referencedColumnName'], $targetClass, $this->em);
         }
 
@@ -549,7 +558,21 @@ class ManyToManyPersister extends AbstractCollectionPersister
             $class2 = $collection->getTypeClass();
         }
 
+        /**
+         * CHANGE WALLMOB
+         * Case: Insert a many to many relation with master_user_id as part of both joinColumns
+         * Issue: Here the values for the insert statement are found. joinTableColumns contains master_user_id twice.
+         *        So we make sure we only use the values from columns we have not seen yet.
+         */
+        $seenJoinColumns = [];
+
         foreach ($mapping['joinTableColumns'] as $joinTableColumn) {
+            //
+            if (in_array($joinTableColumn, $seenJoinColumns)) {
+                continue;
+            }
+            $seenJoinColumns[] = $joinTableColumn;
+
             $isRelationToSource = isset($mapping['relationToSourceKeyColumns'][$joinTableColumn]);
 
             if ( ! $isComposite) {
