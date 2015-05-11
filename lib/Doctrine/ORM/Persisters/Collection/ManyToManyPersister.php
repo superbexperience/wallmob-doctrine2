@@ -447,7 +447,16 @@ class ManyToManyPersister extends AbstractCollectionPersister
         }
 
         foreach ($mapping['joinTable']['inverseJoinColumns'] as $joinColumn) {
-            $columns[] = $this->quoteStrategy->getJoinColumnName($joinColumn, $targetClass, $this->platform);
+            /**
+             * CHANGE WALLMOB
+             * Case: Insert a many to many relation with master_user_id as part of both joinColumns
+             * Issue: Here we make sure only to insert the same column once in the insert statement
+             */
+            $columnName = $this->quoteStrategy->getJoinColumnName($joinColumn, $targetClass, $this->platform);
+            if (in_array($columnName, $columns)) {
+                continue;
+            }
+            $columns[] = $columnName;
             $types[]   = PersisterHelper::getTypeOfColumn($joinColumn['referencedColumnName'], $targetClass, $this->em);
         }
 
